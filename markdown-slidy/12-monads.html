@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="todays-topic-monads">
+<h1>Today's Topic: Monads</h1>
+</div>
+<div class="section slide level1" id="this-is-totally-unfinished">
+<h1>This is totally unfinished</h1>
+<p>quoted from <a href="http://learnyouahaskell.com/a-fistful-of-monads#getting-our-feet-wet-with-maybe">LYAH</a></p>
+<p>When we first talked about functors, we saw that they were a useful concept for values that can be mapped over. Then, we took that concept one step further by introducing applicative functors, which allow us to view values of certain data types as values with contexts and use normal functions on those values while preserving the meaning of those contexts.</p>
+<p>In this chapter, we'll learn about monads, which are just beefed up applicative functors, much like applicative functors are only beefed up functors.</p>
+</div>
+<div class="section slide level1" id="a-refresher-on-functors-and-applicatives">
+<h1>A refresher on Functors and Applicatives</h1>
+<p>When we started off with functors, we saw that it's possible to map functions over various data types. We saw that for this purpose, the Functor type class was introduced and it had us asking the question: when we have a function of type a -&gt; b and some data type f a, how do we map that function over the data type to end up with f b? We saw how to map something over a Maybe a, a list [a], an IO a etc. We even saw how to map a function a -&gt; b over other functions of type r -&gt; a to get functions of type r -&gt; b. To answer this question of how to map a function over some data type, all we had to do was look at the type of fmap:</p>
+<p>fmap :: (Functor f) =&gt; (a -&gt; b) -&gt; f a -&gt; f b<br />And then make it work for our data type by writing the appropriate Functor instance.</p>
+<p>Then we saw a possible improvement of functors and said, hey, what if that function a -&gt; b is already wrapped inside a functor value? Like, what if we have Just (<em>3), how do we apply that to Just 5? What if we don't want to apply it to Just 5 but to a Nothing instead? Or if we have [(</em>2),(+4)], how would we apply that to [1,2,3]? How would that work even? For this, the Applicative type class was introduced, in which we wanted the answer to the following type:</p>
+<p>(&lt;*&gt;) :: (Applicative f) =&gt; f (a -&gt; b) -&gt; f a -&gt; f b<br />We also saw that we can take a normal value and wrap it inside a data type. For instance, we can take a 1 and wrap it so that it becomes a Just 1. Or we can make it into a [1]. Or an I/O action that does nothing and just yields 1. The function that does this is called pure.</p>
+<p>Like we said, an applicative value can be seen as a value with an added context. A fancy value, to put it in technical terms. For instance, the character 'a' is just a normal character, whereas Just 'a' has some added context. Instead of a Char, we have a Maybe Char, which tells us that its value might be a character, but it could also be an absence of a character.</p>
+<p>It was neat to see how the Applicative type class allowed us to use normal functions on these values with context and how that context was preserved. Observe:</p>
+<p>ghci&gt; (<em>) &lt;<span class="LaTeX">$&gt; Just 2 &lt;*&gt; Just 8 Just 16 ghci&gt; (++) &lt;$</span>&gt; Just &quot;klingon&quot; &lt;</em>&gt; Nothing<br />Nothing<br />ghci&gt; (-) &lt;$&gt; [3,4] &lt;*&gt; [1,2,3]<br />[2,1,0,3,2,1]<br />Ah, cool, so now that we treat them as applicative values, Maybe a values represent computations that might have failed, [a] values represent computations that have several results (non-deterministic computations), IO a values represent values that have side-effects, etc.</p>
+</div>
+<div class="section slide level1" id="monads">
+<h1>Monads</h1>
+<p>Monads are a natural extension of applicative functors and with them we're concerned with this: if you have a value with a context, m a, how do you apply to it a function that takes a normal a and returns a value with a context? That is, how do you apply a function of type a -&gt; m b to a value of type m a? So essentially, we will want this function:</p>
+<p>(&gt;&gt;=) :: (Monad m) =&gt; m a -&gt; (a -&gt; m b) -&gt; m b</p>
+<p>If we have a fancy value and a function that takes a normal value but returns a fancy value, how do we feed that fancy value into the function? This is the main question that we will concern ourselves when dealing with monads. We write m a instead of f a because the m stands for Monad, but monads are just applicative functors that support &gt;&gt;=. The &gt;&gt;= function is pronounced as bind.</p>
+<p>When we have a normal value a and a normal function a -&gt; b it's really easy to feed the value to the function — you just apply the function to the value normally and that's it. But when we're dealing with values that come with certain contexts, it takes a bit of thinking to see how these fancy values are fed to functions and how to take into account their behavior, but you'll see that it's easy as one two three.</p>
+</div>
+<div class="section slide level1" id="the-maybe-monad">
+<h1>The <code>Maybe</code> monad</h1>
+<ul>
+<li><p>System libraries define a <code>Monad</code> instance for <code>Maybe</code></p>
+<p>instance Monad Maybe where (Just x) &gt;&gt;= k = k x Nothing &gt;&gt;= _ = Nothing return = Just fail _ = Nothing</p></li>
+<li>You can use <code>Nothing</code> to indicate failure
+<ul>
+<li>Might have a bunch of functions to extract fields from data</li>
+</ul>
+<p>extractA :: String -&gt; Maybe Int extractB :: String -&gt; Maybe String ... parseForm :: String -&gt; Maybe Form parseForm raw = do a &lt;- extractA raw b &lt;- extractB raw ... return (Form a b ...)</p>
+<ul>
+<li>Threads success/failure state through system as <code>IO</code> threaded World</li>
+<li>Since Haskell is lazy, stops computing at first <code>Nothing</code></li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="in-conclusion">
+<h1>In Conclusion</h1>
+<ul>
+<li>Monads can be thought of as composable computation descriptions.</li>
+<li>The essence of Monad is thus
+<ul>
+<li>separation of composition timeline from the composed computations execution timeline?</li>
+<li>as well as the ability of computation to implicitly carry extra data, as pertaining to the computation itself, in additionto its <em>one</em> output that it <em>will</em> produce when run.</li>
+</ul></li>
+<li>This lends monads to supplementing pure calculations with features like IO, common environment or state, and to preprocessing of computation (simplification, optimization, etc.)</li>
+</ul>
+</div>
+<div class="section slide level1" id="homework">
+<h1>Homework</h1>
+<ul>
+<li>Read the &quot;Walk the Line&quot; example in <a href="http://learnyouahaskell.com/a-fistful-of-monads#getting-our-feet-wet-with-maybe">Learn You a Haskell</a></li>
+</ul>
+</div>
+</body> 
+</html>

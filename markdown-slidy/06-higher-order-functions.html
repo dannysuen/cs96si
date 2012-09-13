@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="today">
+<h1>Today</h1>
+<ul>
+<li>Higher order functions are the bread and butter of functional programming.
+<ul>
+<li>Map, filter</li>
+</ul></li>
+<li>Lambdas</li>
+<li>Closures</li>
+<li>Functions as first-class objects</li>
+</ul>
+</div>
+<div class="section slide level1" id="function-composition">
+<h1>Function composition</h1>
+<ul>
+<li><p>Here's a refresher.</p>
+<p>countLowerCase :: String -&gt; Int countLowerCase = length . filter isLower</p></li>
+<li><p>The &quot;<code>.</code>&quot; operator provides function composition</p>
+<p>(f . g) x = f (g x)</p></li>
+<li><p>Function composition can be used almost like Unix pipelines</p>
+<p>process = countLowercase . toPigLatin . extractComments . unCompress</p></li>
+</ul>
+<p><a href="240h%20slides">1</a></p>
+</div>
+<div class="section slide level1" id="map">
+<h1>Map</h1>
+<p>The action of the map function is very simple: it takes a list and applies some function to every element of a list, obtaining a new list. It's defined as:</p>
+<pre><code>map :: (a -&gt; b) -&gt; [a] -&gt; [b]
+map _ [] = []  
+map f (x:xs) = f x : map f xs  </code></pre>
+<p>Some examples:</p>
+<pre><code>ghci&gt; map (+3) [1,5,3,1,6]  
+[4,8,6,4,9]  
+ghci&gt; map (++ &quot;!&quot;) [&quot;BIFF&quot;, &quot;BANG&quot;, &quot;POW&quot;]  
+[&quot;BIFF!&quot;,&quot;BANG!&quot;,&quot;POW!&quot;]  
+ghci&gt; map (replicate 3) [3..6]  
+[[3,3,3],[4,4,4],[5,5,5],[6,6,6]]  
+ghci&gt; map (map (^2)) [[1,2],[3,4,5,6],[7,8]]  
+[[1,4],[9,16,25,36],[49,64]]  
+ghci&gt; map fst [(1,2),(3,5),(6,3),(2,6),(2,5)]  
+[1,3,6,2,2]     </code></pre>
+<p>Now suppose you want a list of the ﬁrst ten squares:</p>
+<pre><code>ghci&gt; map (\x -&gt; x*x ) [1..10]
+[1,4,9,16,25,36,49,64,81,100]</code></pre>
+<p>Wait--what's that <code>\x</code> doing there?? It's the start of a function that we made up on the spot and didn't have to give a name to. In other words, it's an <em>anonymous function</em>, also known as a <em>lambda abstraction</em>.</p>
+<p><a href="https://docs.google.com/viewer?a=v&amp;q=cache:U4vRVOZ0fr0J:www2.math.ou.edu/~dmccullough/teaching/f06-6833/haskell/map_filter.pdf+&amp;hl=en&amp;gl=us&amp;pid=bl&amp;srcid=ADGEESjcCmKgfg6iUrCYZDU2hrb_sIy114D4nZZv-jR6f1A1nNXq3uuABBRRzQY8odNMZn2LdHQiJNLGs6d4L2Obw7ohBuc72WaHzwsdSAdRJrqsM6rZNi0vsiOsj5w_zDJGW-LdB6pX&amp;sig=AHIEtbTStYEchrse3COaAQd8twCJghF9KA">2</a></p>
+</div>
+<div class="section slide level1" id="list-comprehensions">
+<h1>List Comprehensions</h1>
+<p>List comprehension is really nothing more than map and filter in a friendlier format:</p>
+<pre><code>[ f(x) | x &lt;- list ]</code></pre>
+<p>is really</p>
+<pre><code>map f list</code></pre>
+<p>and</p>
+<pre><code>[ x | x &lt;- list, P(x) ]</code></pre>
+<p>is really</p>
+<pre><code>filter P list</code></pre>
+<p>For example,</p>
+<pre><code>[ (firstCh, secondCh) | firstCh &lt;- &quot;The first string.&quot;,
+secondCh &lt;- &quot;The second string.&quot;, isLower firstCh, isUpper secondCh,
+toUpper firstCh == secondCh ]</code></pre>
+<p>(don't think too hard. It's a dummy function. The result is <code>[('t','T'),('t','T')]</code>)</p>
+<p>can be written as the composition</p>
+<pre><code>filter (\pair -&gt; toUpper (fst pair) == (snd pair) )
+( concat
+( map (\ch1 -&gt; map (\ch2 -&gt; (ch1, ch2)) (filter isUpper &quot;The second string.&quot; ) )
+(filter isLower &quot;The first string.&quot;) ) )</code></pre>
+<p>Clearly, this is much easier to understand when written using list comprehension. [2]</p>
+</div>
+<div class="section slide level1" id="lambda-abstraction">
+<h1>Lambda abstraction</h1>
+<ul>
+<li>Sometimes you want to name the arguments but not the function</li>
+<li>Haskell allows anonymous functions through <em>lambda abstraction</em>
+<ul>
+<li>The notation is <code>\</code><em>variable(s)</em> <code>-&gt;</code> <em>body</em> (where <code>\</code> is pronounced &quot;lambda&quot;)</li>
+</ul></li>
+<li><p>That is, the inputs come after the <code>\</code>, and the function body goes after the <code>-&gt;</code>. We can apply a lambda abstraction to a value by appending the value. For instance, <code>(\x -&gt; x * x) 7</code> would give <code>49</code>.</p></li>
+<li><p>We most often use lambdas when we need to create a function &quot;in place&quot;. For example:</p>
+<pre><code>countLowercaseAndDigits :: String -&gt; Int
+countLowercaseAndDigits = length . filter (\c -&gt; isLower c || isDigit c)</code></pre></li>
+</ul>
+<p><code>filter</code> is defined as</p>
+<pre><code>filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]  
+filter _ [] = []  
+filter p (x:xs)   
+    | p x       = x : filter p xs  
+    | otherwise = filter p xs  </code></pre>
+<p>The first paramter is a function. We could name the function, as in</p>
+<pre><code>isLowerOrIsDigit :: Char -&gt; Bool
+isLoverOrIsDigit c = isLower c || isDigit c </code></pre>
+<p>but if we never plan to use it again, we may as well define it only where we use it, without naming it. So instead we use the lambda abstraction, <code>(\c -&gt; isLower c || isDigit c)</code>.</p>
+<ul>
+<li><p>Lambda abstractions can deconstruct values with patterns, e.g.:</p>
+<pre><code>… (\(Right x) -&gt; x) …</code></pre>
+<ul>
+<li>But note that guards or multiple bindings are not allowed</li>
+<li>Patterns must have the right constructor or will get run-time error</li>
+</ul></li>
+</ul>
+<p>Some more usage examples of filter:</p>
+<pre><code>ghci&gt; filter (&gt;3) [1,5,3,2,1,6,4,3,2,1]  
+[5,6,4]  
+ghci&gt; filter (==3) [1,2,3,4,5]  
+[3]  
+ghci&gt; filter even [1..10]  
+[2,4,6,8,10]  
+ghci&gt; let notNull x = not (null x) in filter notNull [[1,2,3],[],[3,4,5],[2,2],[],[],[]]  
+[[1,2,3],[3,4,5],[2,2]]  
+ghci&gt; filter (`elem` [&#39;a&#39;..&#39;z&#39;]) &quot;u LaUgH aT mE BeCaUsE I aM diFfeRent&quot;  
+&quot;uagameasadifeent&quot;  
+ghci&gt; filter (`elem` [&#39;A&#39;..&#39;Z&#39;]) &quot;i lauGh At You BecAuse u r aLL the Same&quot;  
+&quot;GAYBALLS&quot; </code></pre>
+<ul>
+<li>&quot;Mapping and filtering is the bread and butter of every functional programmer's toolbox.&quot;</li>
+<li><p>Another example: &quot;Find the largest number under 100,000 that's divisible by 3829. To do that, we'll just filter a set of possibilities in which we know the solution lies.&quot;</p>
+<pre><code>largestDivisible :: (Integral a) =&gt; a  
+largestDivisible = head (filter p [100000,99999..])  
+    where p x = x `mod` 3829 == 0 </code></pre></li>
+</ul>
+<p><a href="http://learnyouahaskell.com/higher-order-functions#curried-functions">5</a></p>
+</div>
+<div class="section slide level1" id="closures">
+<h1>Closures</h1>
+<p>A closure is just a fancy name for how lexical scope interacts with first-class functions.</p>
+<p>Loosely speaking, a closure is an expression with certain values filled in. These values are filled in from an outer scope.</p>
+<p>For example,</p>
+<pre><code>f x = (\y -&gt; x + y) </code></pre>
+<p>If we call <code>f</code> as <code>f 2</code>, we produce a function that takes an argument and adds <code>2</code> to it. Here we have &quot;closed over&quot; the value of <code>x</code>, which was in the lexical scope of the function call of f.</p>
+<p>Said another way, a closure is a function that can reference state in another function.</p>
+<p>Said another way, a closure stores namespace at the point it was defined.</p>
+<pre><code>plus-x :: Int -&gt; Int
+plus-x y = let x = 5 in
+       x + y
+
+let x = 3
+in plus-x 1</code></pre>
+<p>The result is <code>6</code> rather than <code>4</code>.</p>
+<p>Because Haskell is lazy, <code>x^y</code> is a closure, because the free variables <code>x</code> and <code>y</code> are closed over (their values are bound from an outer scope), and the the inner expression, which waits to be evaluated, lives in a different inner scope. The <code>x^y</code> expression has filled-in values from an outer scope, and is therefore a closure.</p>
+<ul>
+<li>Closures are just an implementation detail, and understanding them is not of fundamental importance in learning Haskell. I only mention them because they're absolutely crucial to having first-class functions. (TODO take out the following? If you couldn't close over part of the environment where a function is defined, we wouldn't be able to seed functions with values defined not in the scope of the function.)</li>
+</ul>
+</div>
+<div class="section slide level1" id="more-on-closures-todo-take-out-closures-altogether">
+<h1>More on Closures (TODO: take out closures altogether?)</h1>
+<p>from (http://www.haskell.org/pipermail/beginners/2009-July/002067.html)</p>
+<p>A closure is essentially a binding, <em>together with</em> the enclosing environment---the idea being that the binding may refer (via free variables) to things in its environment. The ability to have closures is absolutely crucial to having first-class functions.</p>
+<p>For example, consider this function:</p>
+<p>mkAdder :: Int -&gt; (Int -&gt; Int) mkAdder y = -&gt; x + y</p>
+<p>mkAdder takes an Int as an argument, and returns a function (Int -&gt; Int) as a result. But take a look at the function it returns: -&gt; x + y has a free variable (y) which refers to its environment. So really what you get when you call mkAdder with a particular argument (say, 3) is a closure, containing the function -&gt; x + y together with the environment (y = 3).</p>
+<p>Of course, hopefully you have realized that mkAdder is really just (+), written in a funny way! So this isn't a contrived example; closures are quite fundamental in Haskell.</p>
+<p>With that said, on some level the idea of a closure is really just an implementation detail---I wouldn't say that understanding it is of fundamental importance in learning Haskell. But learning things never hurts (except when it does).</p>
+</div>
+<div class="section slide level1" id="functions-as-first-class-entities">
+<h1>Functions as first-class entities</h1>
+<p>Haskell functions are first class entities, which means that they</p>
+<ul>
+<li>can be given names</li>
+<li>can be the value of some expression</li>
+<li>can be members of a list</li>
+<li>can be elements of a tuple</li>
+<li>can be passed as parameters to a function</li>
+<li>can be returned from a function as a result</li>
+</ul>
+<p>(quoted from Davie's Introduction to Functional Programming Systems using Haskell.)</p>
+<p>For example, the <code>isUpper</code> function below is passed as an argument to <code>filter</code>.</p>
+<pre><code>ghci&gt; filter isUpper &quot;Some Character String&quot;
+&quot;SCS&quot;</code></pre>
+<p>As another example, <code>add5</code> is a function that returns another function:</p>
+<pre><code>add5 :: Int -&gt; (Int -&gt; Int)
+add5 y = add 5 y</code></pre>
+<p>As another example, when I test the functions you write for your assignments, I define all the tests, which are all functions, I store them in a list, and then I execute them using a special mapping function over the list.</p>
+<pre><code>main = runTests [testAdd5, testStartsWithW, testCurryTwo]</code></pre>
+</div>
+<div class="section slide level1" id="whats-the-difference-between-higher-order-functions-and-first-class-functions">
+<h1>What's the difference between higher order functions and first-class functions?</h1>
+<ul>
+<li>&quot;higher-order&quot; describes a mathematical concept of functions that operate on other functions</li>
+</ul>
+<p>For example: <code>map toUpper &quot;elephant&quot;</code></p>
+<ul>
+<li>&quot;First-class&quot; is a computer science term that describes programming language entities that have no restriction on their use.</li>
+</ul>
+<p>Specifically, first-class functions: - can be given names - can be the value of some expression - can be members of a list - can be elements of a tuple - can be passed as parameters to a function - can be returned from a function as a result</p>
+</div>
+<div class="section slide level1" id="references">
+<h1>References</h1>
+<p>http://www.joelonsoftware.com/items/2006/08/01.html and okasaki... http://en.wikibooks.org/wiki/Haskell/List_processing</p>
+</div>
+</body> 
+</html>

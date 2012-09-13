@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="curried-functions">
+<h1>Curried Functions</h1>
+<p>&quot;Currying a a technique of transforming a function that takes multiple arguments (or an n-tuple of arguments) in such a way that it can be called as a chain of functions each with a single argument (partial application).&quot; <a href="http://en.wikipedia.org/wiki/Currying">1</a></p>
+<p>&quot;Haskell functions can take functions as parameters and return functions as return values. A function that does either of those is called a higher order function. Higher order functions aren't just a part of the Haskell experience, they pretty much are the Haskell experience. It turns out that if you want to define computations by defining what stuff is instead of defining steps that change some state and maybe looping them, higher order functions are indispensable. They're a really powerful way of solving problems and thinking about programs.&quot; <a href="http://learnyouahaskell.com/higher-order-functions#curried-functions">2</a></p>
+</div>
+<div class="section slide level1" id="curried-functions-1">
+<h1>Curried Functions</h1>
+<p>&quot;Every function in Haskell officially only takes one parameter. So how is it possible that we defined and used several functions that take more than one parameter so far? Well, it's a clever trick! All the functions that accepted several parameters so far have been curried functions.&quot;<a href="http://learnyouahaskell.com/higher-order-functions#curried-functions">2</a></p>
+<p>&quot;Putting a space between two things is simply function application. The space is sort of like an operator and it has the highest precedence.&quot;</p>
+<p>For example, <code>add</code> takes two parameters and adds 'em together.</p>
+<pre><code>add :: Int -&gt; Int -&gt; Int
+add a b = a + b</code></pre>
+<p>All functions only take one parameter, so what actually happens in <code>add 4 5</code> is that <code>4</code> is applied to <code>add</code>, and the result of this application is a function that will accept one parameter (here, the <code>5</code>). We can rewrite the function signature in an equivalent form:</p>
+<pre><code>add :: Int -&gt; (Int -&gt; Int)</code></pre>
+<p>First <code>add 4</code> is evaluated. Then it returns a function that takes in a single <code>Int</code>:</p>
+<pre><code>add4 :: Int -&gt; Int
+add4 y = 4 + y</code></pre>
+<p>In summary, &quot;if you define a function like f x y = bla, this is the same as f x = -&gt; bla, which is the same as f = -&gt; (-&gt; bla). In other words f is a function which takes one argument, x, and returns another function which takes one argument, y, and then returns the actual result.&quot; <a href="http://stackoverflow.com/questions/3794371/haskell-currying-need-further-explanation">8</a></p>
+<p>Even if you don't understand the above waffle, just remember this. Given a function definition such as:</p>
+<pre><code>foo :: int -&gt; int -&gt; int -&gt; int</code></pre>
+<p>The type after the last arrow is what the function (eventually) returns when fully evalutated.</p>
+</div>
+<div class="section slide level1" id="another-example">
+<h1>Another Example</h1>
+<pre><code>multThree :: (Num a) =&gt; a -&gt; a -&gt; a
+multThree x y z = x * y * z</code></pre>
+<p>In <code>multThree 7 8 9</code>, first <code>7</code> is applied to multThree, because they're separated by a space. That creates a function that takes one parameter and returns a function. Then <code>8</code> is applied to that, which creates a function that will take a parameter and multiply it by 15. <code>9</code> is applied to that function and the result is <code>504</code>.</p>
+<pre><code>ghci&gt; let multTwoNumbersWithSeven = multThree 7
+ghci&gt; multTwoNumbersWithSeven 8 9
+504
+ghci&gt; let multWithSixtyThree = multTwoNumbersWithSeven 8
+ghci&gt; multWithSixtyThree 9
+504</code></pre>
+<p>By calling functions with too few parameters, so to speak, we're creating new functions on the fly. What if we wanted to create a function that takes a number and compares it to 100? We could do something like this:</p>
+<pre><code>compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering  
+compareWithHundred x = compare 100 x  </code></pre>
+<p>If we call it with 99, it returns a GT. Simple stuff. Notice that the x is on the right hand side on both sides of the equation. Now let's think about what compare 100 returns. It returns a function that takes a number and compares it with 100. Wow! Isn't that the function we wanted? We can rewrite this as:</p>
+<pre><code>compareWithHundred :: (Num a, Ord a) =&gt; a -&gt; Ordering  
+compareWithHundred = compare 100  </code></pre>
+<p>The type declaration stays the same, because <code>compare 100</code> returns a function. Compare has a type of <code>(Ord a) =&gt; a -&gt; (a -&gt; Ordering)</code> and calling it with <code>100</code> returns a <code>(Num a, Ord a) =&gt; a -&gt; Ordering</code>.</p>
+<p><a href="http://learnyouahaskell.com/higher-order-functions#curried-functions">3</a></p>
+</div>
+<div class="section slide level1" id="infix-operators">
+<h1>Infix Operators</h1>
+<p>Infix operators are really just functions, and can also be defined using equations. For example, here is a definition of a list concatenation operator:</p>
+<p>(++) :: [a] -&gt; [a] -&gt; [a] [] ++ ys = ys (x:xs) ++ ys = x : (xs++ys)</p>
+<p>[Lexically, infix operators consist entirely of &quot;symbols,&quot; as opposed to normal identifiers which are alphanumeric (§2.4). Haskell has no prefix operators, with the exception of minus (-), which is both infix and prefix.]</p>
+<p>As another example, an important infix operator on functions is that for function composition:</p>
+<p>(.) :: (b-&gt;c) -&gt; (a-&gt;b) -&gt; (a-&gt;c) f . g =  x -&gt; f (g x)</p>
+<p>Side note: We can use any prefix function as a infix operator if we enclose it in `backticks` (not apostrophes).</p>
+<p>For example,</p>
+<pre><code>x `elem` xs</code></pre>
+<p><a href="http://www.haskell.org/tutorial/functions.html">6</a></p>
+</div>
+<div class="section slide level1" id="sections">
+<h1>Sections</h1>
+<p>Since infix operators are really just functions, it makes sense to be able to partially apply them as well. In Haskell the partial application of an infix operator is called a section. For example:</p>
+<pre><code>(x+)    =   \y -&gt; x+y
+(+y)    =   \x -&gt; x+y
+(+) =   \x y -&gt; x+y</code></pre>
+<p>These definitions would do just fine:</p>
+<pre><code>inc = (+ 1)
+add = (+)</code></pre>
+<p>,</p>
+<pre><code>divideByTen :: (Floating a) =&gt; a -&gt; a  
+divideByTen = (/10)  </code></pre>
+<p>Calling, say, <code>divideByTen 200</code> is equivalent to doing <code>200 / 10</code>, as is doing <code>(/10) 200</code>. A function that checks if a character supplied to it is an uppercase letter:</p>
+<pre><code>isUpperAlphanum :: Char -&gt; Bool  
+isUpperAlphanum = (`elem` [&#39;A&#39;..&#39;Z&#39;])  </code></pre>
+<p>You can read <code>less = filter (&lt; x) xs</code> aloud like &quot;keep those in <code>xs</code> that are less than <code>x</code>&quot;. Although <code>(&lt; x)</code> is just a shorthand for <code>(\y -&gt; y &lt; x)</code>, try reading that aloud!</p>
+<p><a href="http://www.haskell.org/tutorial/functions.html">6</a></p>
+</div>
+</body> 
+</html>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="todays-topics-typeclasses-data-constructors-type-synonyms-and-newtype">
+<h1>Today's Topics: Typeclasses, data constructors, type synonyms, and <code>newtype</code></h1>
+</div>
+<div class="section slide level1" id="type-variables">
+<h1>Type Variables</h1>
+<p>Head takes a list of any type and returns the first element. What's its type?</p>
+<pre><code>ghci&gt; :t head  
+head :: [a] -&gt; a  </code></pre>
+<p>What's the <code>a</code>? It can't be a type, because types are written in capital case.</p>
+<p>Rather, it's a <em>type variable</em>. That means <code>a</code> can be of any type.</p>
+<p>Functions that have type variables are called <em>polymorphic functions</em>.</p>
+<p>The type declaration of head states that it takes a list of any type and returns one element of that same type.</p>
+<p>We use different letters when we want to refer to two items that may have different types:</p>
+<pre><code>ghci&gt; :t fst  
+fst :: (a, b) -&gt; a  </code></pre>
+<p><a href="http://learnyouahaskell.com/types-and-typeclasses">1</a></p>
+</div>
+<div class="section slide level1" id="typeclasses">
+<h1>Typeclasses</h1>
+<p>A typeclass is a sort of interface that defines some behavior.</p>
+<ul>
+<li>For example, <code>Eq</code> is a typeclass. Other types may be members of this typeclass, which means that they implement <code>(==)</code> and <code>(/=)</code>.</li>
+<li>Members of the <code>Ord</code> typeclass can be ordered. They implement <code>compare</code>, <code>(&gt;)</code>, <code>(&lt;)</code>, <code>(&gt;=)</code>, <code>(&lt;=)</code>, <code>max</code>, <code>min</code>.</li>
+</ul>
+<p>Let's say we want to define our own <code>Food</code> typeclass such that every member of the typeclass must implement the <code>pricePerPound</code> function:</p>
+<pre><code>class Food food where
+  pricePerPound :: food -&gt; Price</code></pre>
+<p>Now let's create some instances of the Food typeclass. In order to be a member of the typeclass, they must implement <code>pricePerPound</code>.</p>
+<pre><code>data Fruit = Fruit { color :: String
+                   , price :: Float
+                   , weight :: Float
+                   }
+
+data Steak = Steak
+
+instance Food Fruit where
+  pricePerPound fruit = (price fruit) / (weight fruit)
+
+instance Food Steak where
+  pricePerPound steak = 20.0</code></pre>
+<p>Now we want to create a function called <code>isExpensive</code> that returns <code>True</code> if the food costs more than $5 per pound.</p>
+<pre><code>isExpensive :: Food f =&gt; f -&gt; Bool
+isExpensive food = pricePerPound food &gt; 5</code></pre>
+<p>Everything before the <code>=&gt;</code> is called a <em>class constraint</em>.</p>
+<p>If we try to apply <code>isExpensive</code> to any data type that is not a member of the <code>Food</code> typeclass, the compiler will produce a compile-time error.</p>
+<p>if we hadn't included the type constraint, we could have passed in a <code>String</code> rather than a Food, and when we tried to apply <code>pricePerPound</code> to the <code>String</code>, it would raise a runtime error, because the <code>String</code> data type does implement <code>pricePerPound</code>.</p>
+<p>TODO: what if both the Food and the Fruit are members of Show? do we take the more specific implementation?</p>
+</div>
+<div class="section slide level1" id="type-synonyms">
+<h1>Type Synonyms</h1>
+<pre><code>type String = [Char]</code></pre>
+<p>We've introduced the type keyword. The keyword might be misleading to some, because we're not actually making anything new (we did that with the data keyword), but we're just making a synonym for an already existing type.</p>
+<p>It's often a good idea to create type synonyms when we want to ensure the data type represents what we want. For example, rather than:</p>
+<pre><code>data Fruit = Fruit { color :: String
+                   , price :: Float
+                   , weight :: Float
+                   }</code></pre>
+<p>we could include:</p>
+<pre><code>type Dollars = Float
+type Pounds = Float
+
+data Fruit = { color :: Color
+             , price :: Dollars
+             , weight :: Pounds
+             }</code></pre>
+<p>to make it clear that we're using the American system of measurement.</p>
+<p>Just like we can partially apply functions to get new functions, we can partially apply type parameters and get new type constructors from them. Just like we call a function with too few parameters to get back a new function, we can specify a type constructor with too few type parameters and get back a partially applied type constructor. If we wanted a type that represents a map (from <code>Data.Map</code>) from integers to something, we could either do this:</p>
+<pre><code>type IntMap v = Map Int v  </code></pre>
+<p>Or we could do it like this:</p>
+<pre><code>type IntMap = Map Int  </code></pre>
+<p>Either way, the <code>IntMap</code> type constructor takes one parameter and that is the type of what value that corresponds to each Integer key.</p>
+</div>
+<div class="section slide level1" id="newtype">
+<h1>newtype</h1>
+<p>In addition to the familiar data keyword, Haskell provides us with another way to create a new type, using the newtype keyword.</p>
+<p>The purpose of a newtype declaration is to rename an existing type, giving it a distinct identity.</p>
+<pre><code>newtype Fahrenheit = Fahrenheit Float
+    deriving (Eq, Ord, Show, Num, Fractional)
+
+newtype Celsius = Celsius Float
+    deriving (Eq, Ord, Show, Num, Fractional)
+
+far2cel :: Fahrenheit -&gt; Celsius
+far2cel (Fahrenheit far) = Celsius $ (5 / 9) * (far - 32)
+
+cel2far :: Celsius -&gt; Fahrenheit
+cel2far (Celsius cel) = Fahrenheit $ (cel * (9 / 5)) + 32</code></pre>
+<p>If we had used a data constructor or a type synonym, the compiler would let us mix up Fahrenheit and Celsius. Using the <code>type</code> keyword, both we and the compiler know that <code>Fahrenheit</code> and <code>Float</code> refer to the same type.</p>
+<p>In contrast, the newtype keyword exists to hide the nature of a type. The compiler treats Fahrenheit as a different type from Float.</p>
+<p><a href="http://necrobious.blogspot.com/2009/03/fun-example-of-haskells-newtype.html">3</a> <a href="http://book.realworldhaskell.org/read/using-typeclasses.html">4</a></p>
+</div>
+<div class="section slide level1" id="whats-the-difference-between-data-type-and-newtype">
+<h1>What's the difference between <code>data</code>, <code>type</code>, and <code>newtype</code>?</h1>
+<ul>
+<li>If you just want your type signatures to look cleaner and be more descriptive, you probably want type synonyms, using the <code>type</code> keyword.
+<ul>
+<li><code>type Dollars = Float</code></li>
+</ul></li>
+<li>If you want to take an existing type and wrap it in a new type in order to make it an instance of a type class, chances are you're looking for a <code>newtype</code>.
+<ul>
+<li><code>newtype Fahrenheit = Fahrenheit Float</code></li>
+</ul></li>
+<li>And if you want to make something completely new, odds are good that you're looking for the <code>data</code> keyword.
+<ul>
+<li><code>data Tree a = Tip | Node a (Tree a) (Tree a)</code></li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="superclasses-and-instance-contexts">
+<h1>Superclasses and instance contexts</h1>
+<ul>
+<li>One class may require all instances to be members of another
+<ul>
+<li>Class <code>Eq</code> contains '==' and '/=' methods, while <code>Ord</code> contains <code>&lt;</code>, <code>&gt;=</code>, <code>&gt;</code>, <code>&lt;=</code>, etc.</li>
+<li>It doesn't make sense to have an <code>Ord</code> instance not also be an <code>Eq</code> instance</li>
+<li><p><code>Ord</code> declares <code>Eq</code> as a superclass, using a context</p>
+<pre><code>class Eq a =&gt; Ord a where
+    (&lt;), (&gt;=), (&gt;), (&lt;=) :: a -&gt; a -&gt; Bool
+    a &lt;= b = a == b || a &lt; b -- default methods can use superclasses
+....</code></pre></li>
+<li>Don't need to write superclass restrictions in contexts--any function with an <code>Ord</code> dictionary can lookup the <code>Eq</code> dictionary</li>
+<li><p>Incidentally, can add <code>deriving (Eq, Ord)</code> to <code>data</code> declarations</p></li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="deriving-typeclasses">
+<h1>Deriving Typeclasses</h1>
+<pre><code>data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
+    deriving (Eq, Ord, Show, Read, Bounded, Enum)</code></pre>
+<p>Because it's part of the Show and Read typeclasses, we can convert values of this type to and from strings.</p>
+<pre><code>ghci&gt; Wednesday  
+Wednesday  
+ghci&gt; show Wednesday  
+&quot;Wednesday&quot;  
+ghci&gt; read &quot;Saturday&quot; :: Day  
+Saturday  </code></pre>
+<p>Because it's part of the Eq and Ord typeclasses, we can compare or equate days.</p>
+<pre><code>ghci&gt; Saturday == Sunday  
+False  
+ghci&gt; Saturday == Saturday  
+True  
+ghci&gt; Saturday &gt; Friday  
+True  
+ghci&gt; Monday `compare` Wednesday  
+LT  </code></pre>
+<p>It's also part of <code>Bounded</code>, so we can get the lowest and highest day.</p>
+<pre><code>ghci&gt; minBound :: Day  
+Monday  
+ghci&gt; maxBound :: Day  
+Sunday  </code></pre>
+<p>It's also an instance of <code>Enum</code>. We can get predecessors and successors of days and we can make list ranges from them!</p>
+<pre><code>ghci&gt; succ Monday  
+Tuesday  
+ghci&gt; pred Saturday  
+Friday  
+ghci&gt; [Thursday .. Sunday]  
+[Thursday,Friday,Saturday,Sunday]  
+ghci&gt; [minBound .. maxBound] :: [Day]  
+[Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday]  </code></pre>
+<p><a href="http://learnyouahaskell.com/making-our-own-types-and-typeclasses">3</a></p>
+</div>
+<div class="section slide level1" id="homework">
+<h1>Homework</h1>
+<p>Read sections <em>Algebraic data types intro</em> and <em>Record Syntax</em> in <a href="http://learnyouahaskell.com/making-our-own-types-and-typeclasses#algebraic-data-types">chapter 8 of Learn You a Haskell</a></p>
+</div>
+</body> 
+</html>

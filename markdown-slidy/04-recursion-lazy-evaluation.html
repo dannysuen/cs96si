@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="recursion">
+<h1>Recursion</h1>
+<ul>
+<li>Recursion is the idea of definining a function in terms of itself.</li>
+</ul>
+<p>Let's take the factorial function as an example. Here are the definitions of the factorial of each of the first six counting numbers:</p>
+<pre><code>Factorial of 6 = 6 × 5 × 4 × 3 × 2 × 1
+Factorial of 5 =     5 × 4 × 3 × 2 × 1
+Factorial of 4 =          4 × 3 × 2 × 1
+Factorial of 3 =              3 × 2 × 1
+Factorial of 2 =                  2 × 1
+Factorial of 1 =                     1</code></pre>
+<p>You can see that the factorial of 6 (denoted as 5!) involves the 5!. In fact, 6! is just 6 * 5!</p>
+<pre><code>factorial 0 = 1
+factorial n = n * factorial (n-1)</code></pre>
+<p>Indeed, we can see that the factorial of any number is just that number multiplied by the factorial of the number one less than it. There's one exception to this: if we ask for the factorial of 0, we don't want to multiply 0 by the factorial of -1 In fact, we just say the factorial of 0 is 1 (we define it to be so. It just is, okay?). So, 0 is the base case for the recursion: when we get to 0 we can immediately say that the answer is 1, without using recursion.</p>
+<p>We can summarize the definition of the factorial function as follows:</p>
+<pre><code>The factorial of 0 is 1.
+The factorial of any other number is that number multiplied by the factorial of the number one less than it.</code></pre>
+<p>We can translate this directly into Haskell: Example: Factorial function</p>
+<pre><code>factorial 0 = 1
+factorial n = n * factorial (n-1)</code></pre>
+<p>As you can see, recursion nearly always comes in two parts: a base case and a recursive case.</p>
+<p>You can try it out by typing the following line into GHCI:</p>
+<pre><code>&gt; let { factorial 0 = 1; factorial n = n * factorial (n - 1) }</code></pre>
+<p>Let's look at what happens when you execute factorial 3:</p>
+<pre><code>3 isn&#39;t 0, so we calculate the factorial of 2
+    2 isn&#39;t 0, so we calculate the factorial of 1
+        1 isn&#39;t 0, so we calculate the factorial of 0
+            0 is 0, so we return 1.
+        To complete the calculation for factorial 3, we multiply the current number, 1, by the factorial of 0, which is 1, obtaining 1 (1 × 1).
+    To complete the calculation for factorial 3, we multiply the current number, 2, by the factorial of 1, which is 1, obtaining 2 (2 × 1 × 1).
+To complete the calculation for factorial 3, we multiply the current number, 3, by the factorial of 2, which is 2, obtaining 6 (3 × 2 × 1 × 1).</code></pre>
+<p>We can see how the result of the recursive call is calculated first, then combined using multiplication. Once you see how it can work, you rarely need to &quot;unwind&quot; the recursion like this when reading or composing recursive functions. Compilers have to implement the behaviour, but programmers can work at the abstract level, e.g., the relationship between factorial n and factorial (n-1).</p>
+<p><a href="http://www.haskell.org/haskellwiki/Haskell/Lazy_evaluation">1</a> # Recursion is especially useful for list-based operations</p>
+<p>A lot of functions in Haskell turn out to be recursive, especially those concerning lists. Let us begin by considering the length function, that finds the length of a list:</p>
+<p>Example: The recursive definition of length</p>
+<pre><code>length :: [a] -&gt; Int
+length []     = 0
+length (x:xs) = 1 + length xs</code></pre>
+<p>Let us explain the algorithm in English to clarify how it works. The type signature of lengths length tells that it takes any sort of list and produces an <code>Int</code>. The next line says that the length of an empty list is 0; and that, naturally, is the base case. The final line is the recursive case: if a list consists of a first element, <code>x</code>, and <code>xs</code>, the rest of the list, the length of the list is one plus the length of <code>xs</code></p>
+</div>
+<div class="section slide level1" id="another-example-of-a-recursive-operation-on-a-list">
+<h1>Another example of a recursive operation on a list</h1>
+<pre><code>maximum&#39; :: (Ord a) =&gt; [a] -&gt; a  
+maximum&#39; [] = error &quot;maximum of empty list&quot;  
+maximum&#39; [x] = x  
+maximum&#39; (x:xs)   
+    | x &gt; maxTail = x  
+    | otherwise = maxTail  
+    where maxTail = maximum&#39; xs  </code></pre>
+<p>or</p>
+<pre><code>maximum&#39; :: (Ord a) =&gt; [a] -&gt; a  
+maximum&#39; [] = error &quot;maximum of empty list&quot;  
+maximum&#39; [x] = x  
+maximum&#39; (x:xs) = max x (maximum&#39; xs)    </code></pre>
+<p>Side note: As you can see, pattern matching goes great with recursion! Most imperative languages don't have pattern matching so you have to make a lot of if else statements to test for edge conditions.</p>
+</div>
+<div class="section slide level1" id="another-example-of-a-recursive-operation-on-a-list-1">
+<h1>Another example of a recursive operation on a list</h1>
+<p>The &quot;take&quot; function takes a certain number of elements from a list.</p>
+<pre><code>take&#39; :: (Num i, Ord i) =&gt; i -&gt; [a] -&gt; [a]  
+take&#39; n _  
+    | n &lt;= 0   = []  
+take&#39; _ []     = []  
+take&#39; n (x:xs) = x : take&#39; (n-1) xs  </code></pre>
+</div>
+<div class="section slide level1" id="another-example-of-a-recursive-operation-on-a-list-2">
+<h1>Another example of a recursive operation on a list</h1>
+<pre><code>reverse&#39; :: [a] -&gt; [a]  
+reverse&#39; [] = []  
+reverse&#39; (x:xs) = reverse&#39; xs ++ [x] </code></pre>
+</div>
+<div class="section slide level1" id="another-example-of-a-recursive-operation-on-a-list-3">
+<h1>Another example of a recursive operation on a list</h1>
+<p>&quot;elem&quot; takes an element and a list and sees if that element is in the list.</p>
+<pre><code>elem&#39; :: (Eq a) =&gt; a -&gt; [a] -&gt; Bool  
+elem&#39; a [] = False  
+elem&#39; a (x:xs)  
+    | a == x    = True  
+    | otherwise = a `elem&#39;` xs   </code></pre>
+</div>
+<div class="section slide level1" id="dont-get-too-excited-about-recursion">
+<h1>Don't get TOO excited about recursion</h1>
+<ul>
+<li>Although it's very important to have a solid understanding of recursion when programming in Haskell, one rarely has to write functions that are explicitly recursive. Instead, there are all sorts of standard library functions which perform recursion for you in various ways, and one usually ends up using those instead. For example, a much simpler way to implement the factorial function is as follows:</li>
+</ul>
+<p>Example: Implementing factorial with a standard library function</p>
+<pre><code>factorial n = product [1..n]</code></pre>
+<p>Almost seems like cheating, doesn't it? :) This is the version of factorial that most experienced Haskell programmers would write, rather than the explicitly recursive version we started out with. Of course, the product function is using some list recursion behind the scenes[5], but writing factorial in this way means you, the programmer, don't have to worry about it. <a href="http://en.wikibooks.org/wiki/Haskell/Recursion#cite_note-1">3</a></p>
+</div>
+<div class="section slide level1" id="strict-vs-lazy-evaluation">
+<h1>Strict vs Lazy Evaluation</h1>
+<p>from (http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf)</p>
+<ul>
+<li><em>Lazy Evaluation</em> means the evaluation of a given expression is delayed, or suspended, until its result is needed. &quot;In consequence, arguments are not evaluated before they are passed to a function, but only when their values are actually used.&quot; <a href="http://www.haskell.org/haskellwiki/Lazy_evaluation">5</a></li>
+<li>Furthermore, the ﬁrst time a suspended expression is evaluated, the result is memoized (i.e., cached) so that the next time it is needed, it can be looked up rather than recomputed.</li>
+<li><p>Lazy evaluation means expressions are only evaluated at the last pos</p></li>
+<li><p>F is only started once g tries to read some input, and only runs for long enough to deliver the output g is trying to read. Then f is suspended and g is run until it tries to read another input. As an added bonus, if g terminates without reading all of f’s output then f is aborted. F can even be a non-terminating program, producing an inﬁnite amount of output, since it will be terminated forcibly as soon as g is ﬁnished. This allows termination conditions to be separated from loop bodies - a powerful modularisation It makes it practical to modularise a program as a generator which constructs a large number of possible answers, and a selector which chooses the appropriate one. While some other systems allow programs to be run together in this manner, only functional languages use lazy evaluation uniformly for every function call, allowing any part of a program to be modularised in this way. Lazy evaluation is perhaps the most powerful tool for modularisation in the functional programmer’s repertoire.</p></li>
+</ul>
+<p><a href="http://www.cse.chalmers.se/~rjmh/Papers/whyfp.pdf">9</a></p>
+<ul>
+<li><p>&quot;In strict languages, the arguments to a function are evaluated before the body of the function. In lazy languages, arguments are evaluated in a demand-driven fashion; they are initially passed in unevaluated form and are evaluated only when (and if!) the computation needs the results to continue.&quot; [2] &quot;&quot;</p></li>
+<li><p>Lazy evaluation is often more efficient, because values that are not actually used are not computed.</p></li>
+<li><p>Lazy evaluation is not feasible in imperative languages, because it's useful when evaluation can have side-effects. The side-effects may need to occur in a certain order. Therefore, lazy evaluation is only feasible in purely functional languages. [TODO verify]</p></li>
+<li><p>A disadvantage of lazy evaluation is that it's difficult to reason about the running time of a given program.</p></li>
+</ul>
+<p>higher-order functions and lazy evaluation, can contribute greatly to modularity</p>
+<p>Finite list of integers:</p>
+<pre><code>let one_to_ten = [1..10]</code></pre>
+<p>Infinite list of integers: (can only use this construct in a lazy language)</p>
+<pre><code>let positive_ints = [1..]</code></pre>
+</div>
+<div class="section slide level1" id="an-example-of-lazy-evaluation">
+<h1>An Example of Lazy Evaluation</h1>
+<pre><code>quickSort [] = []
+quickSort (x:xs) = quickSort (filter (&lt; x) xs) ++ [x] ++ quickSort (filter (&gt;= x) xs)</code></pre>
+<p>If we now want to find the minimum of the list, we can define</p>
+<pre><code>minimum ls = head (quickSort ls)</code></pre>
+<p>Which first sorts the list and then takes the first element of the list. However, because of lazy evaluation, only the head gets computed. For example, if we take the minimum of the list <code>[2, 1, 3,]</code> quickSort will first filter out all the elements that are smaller than two. Then it does quickSort on that (returning the singleton list [1]) which is already enough. Because of lazy evaluation, the rest is never sorted, saving a lot of computational time.</p>
+<p><a href="http://stackoverflow.com/questions/265392/why-is-lazy-evaluation-useful">6</a></p>
+</div>
+<div class="section slide level1" id="references">
+<h1>References</h1>
+<p><a href="http://www.haskell.org/haskellwiki/Haskell/Lazy_evaluation">1</a> <a href="http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf">2</a></p>
+</div>
+</body> 
+</html>

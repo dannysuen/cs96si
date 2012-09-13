@@ -1,0 +1,9 @@
+<div class="slide cover title"> 
+    <img src="http://upload.wikimedia.org/wikipedia/commons/1/1c/Haskell-Logo.svg" class="cover" />
+    <br clear="all" /> 
+
+    <h1>CS96si: Functional Programming</h1> 
+
+    <p><a href="roseperrone.com">Rose Perrone</a>,
+        &lt;<a href="mailto:rose@cs.stanford.edu">rose@cs.stanford.edu</a>&gt;<br /> 
+</div> 

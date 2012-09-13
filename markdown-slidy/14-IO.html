@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="do-notation">
+<h1><code>do</code> notation</h1>
+<ul>
+<li>Let's write a program to dump a web page</li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span> <span class="kw">do</span>
+  (url<span class="fu">:</span>_) <span class="ot">&lt;-</span> getArgs       <span class="co">-- Sets url to first command-line argument</span>
+  page <span class="ot">&lt;-</span> simpleHttp url   <span class="co">-- Sets page to contents as a ByteString</span>
+  <span class="fu">putStr</span> (L.toString page) <span class="co">-- Converts ByteString to String and prints it</span></code></pre>
+<ul>
+<li>This task requires some impure (non-functional) actions
+<ul>
+<li>Extracting command-line args, creating a TCP connection, writing to stdout</li>
+</ul></li>
+<li>A <code>do</code> block lets you sequence IO actions. In a <code>do</code> block:
+<ul>
+<li><span style="color:blue"><em>pat</em> <code>&lt;-</code> <em>action</em></span> - binds <em>pat</em> (variable or constructor pattern) to result of executing <em>action</em></li>
+<li><span style="color:blue"><code>let</code> <em>pat</em> <code>=</code> <em>pure-value</em></span> - binds <em>pat</em> to <em>pure-value</em> (no &quot;<code>in</code> ...&quot; required)</li>
+<li><span style="color:blue"><em>action</em></span> - executes <em>action</em> and discards the result, or returns it if at end of block</li>
+</ul></li>
+<li>GHCI input is like <code>do</code> block (i.e., can use <code>&lt;-</code>, need <code>let</code> for bindings)</li>
+<li><code>do</code>/<code>let</code>/<code>case</code> won't parse after prefix function (so say &quot;<code>func $ do</code> ...&quot;)</li>
+</ul>
+</div>
+<div class="section slide level1" id="what-are-the-types-of-io-actions">
+<h1>What are the types of IO actions?</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()
+<span class="ot">getArgs ::</span> <span class="dt">IO</span> [<span class="dt">String</span>]
+<span class="ot">simpleHttp ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">L.ByteString</span> <span class="co">-- (really more polymorphic)</span>
+<span class="fu">putStr</span><span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre>
+<ul>
+<li><code>IO</code> is a parameterized type (just as <code>Maybe</code> is parameterized)
+<ul>
+<li>&quot;<code>IO [String]</code>&quot; means IO action that produces a <code>[String]</code> if executed</li>
+<li>Unlike <code>Maybe</code>, we won't use a constructor for <code>IO</code>, which is somewhat magic</li>
+</ul></li>
+<li><p>What if we try to print the first command-line argument as follows?</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span> <span class="fu">putStr</span> (<span class="fu">head</span> getArgs)</code></pre>
+<ul>
+<li>Oops, <code>head</code> expects type <code>[String]</code>, while <code>getArgs</code> is an <code>IO [String]</code></li>
+</ul></li>
+<li>How to de-construct an <code>IO [String]</code> to get a <code>[String]</code>
+<ul>
+<li>We can't use <code>case</code>, because we don't have a constructor for <code>IO</code>... Besides, the order and number of deconstructions of something like <code>putStr</code> matters</li>
+<li>That's the point of the <code>&lt;-</code> operator in <code>do</code> blocks!</li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="another-way-to-see-io-peyton-jonesawkward">
+<h1>Another way to see IO [[Peyton Jones]][Awkward]</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">do</span> page <span class="ot">&lt;-</span> simpleHttp url
+   <span class="fu">putStr</span> (L.toString page)</code></pre>
+<div class="figure">
+<img src="io1.svg" /><p class="caption"></p>
+</div>
+<ul>
+<li><code>simpleHttp</code> and <code>putStr</code> return <code>IO</code> <em>actions</em> that can change the world
+<ul>
+<li>Pure code can manipulate such actions, but can't actually execute them</li>
+<li>Only the special <code>main</code> action is ever executed</li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="another-way-to-see-io-peyton-jonesawkward-1">
+<h1>Another way to see IO [[Peyton Jones]][Awkward]</h1>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">do</span> page <span class="ot">&lt;-</span> simpleHttp url
+   <span class="fu">putStr</span> (L.toString page)</code></pre>
+<div class="figure">
+<img src="io2.svg" /><p class="caption"></p>
+</div>
+<ul>
+<li>The <code>do</code> block builds a compound action from other actions
+<ul>
+<li>It sequences how actions will be applied to the real world</li>
+<li>When executed, applies <code>IO a</code> actions to the world, extracting values of type <code>a</code></li>
+<li>What action to execute next can depend on the value of the extracted <code>a</code></li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="running-urldump">
+<h1>Running <code>urldump</code></h1>
+<pre><code>$ ghc --make urldump
+[1 of 1] Compiling Main             ( urldump.hs, urldump.o )
+Linking urldump ...
+$ ./urldump http://www.scs.stanford.edu/
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;
+...</code></pre>
+<ul>
+<li><p>What if you want to run it in GHCI?</p>
+<pre><code>$ ghci ./urldump.hs
+Prelude Main&gt;</code></pre>
+<ul>
+<li>No <code>*</code> before <code>Main</code> means no access to internal symbols (because compiled)</li>
+</ul>
+<pre><code>Prelude Main&gt; :load *urldump.hs
+[1 of 1] Compiling Main             ( urldump.hs, interpreted )
+Ok, modules loaded: Main.
+*Main&gt; withArgs [&quot;http://cs240h.scs.stanford.edu/&quot;] main</code></pre>
+<ul>
+<li>Alternate GHCI shortcut:</li>
+</ul>
+<pre><code>Prelude Main&gt; :main &quot;http://cs240h.scs.stanford.edu/&quot;</code></pre></li>
+</ul>
+</div>
+<div class="section slide level1" id="the-return-function">
+<h1>The <code>return</code> function</h1>
+<!-- might need to check out
+https://blueprints.launchpad.net/inkscape/+spec/allow-browser-resizing
+-->
+
+<ul>
+<li><p>Let's combine <code>simpleHttp</code> and <code>L.toString</code> into one function</p>
+<div class="figure">
+<img src="simpleHttpStr.svg" /><p class="caption"></p>
+</div>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">simpleHttpStr ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span>
+simpleHttpStr url <span class="fu">=</span> <span class="kw">do</span>
+  page <span class="ot">&lt;-</span> simpleHttp url
+  <span class="fu">return</span> (L.toString page)  <span class="co">-- result of do block is last action</span></code></pre></li>
+<li><p>Note: <strong><code>return</code> is not control flow statement</strong>, just a function</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">return</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> a</code></pre>
+<ul>
+<li>Every action in an <code>IO</code> do block must have type <code>IO a</code> for some <code>a</code></li>
+<li><code>L.toString</code> returns a <code>String</code>, use <code>return</code> to make an <code>IO   String</code></li>
+<li>In a <code>do</code> block, &quot;<code>let x = e</code>&quot; is like &quot;<code>x &lt;- return e</code>&quot; (except recursive)</li>
+</ul></li>
+</ul>
+</div>
+<div class="section slide level1" id="point-free-io-composition">
+<h1>Point-free IO composition</h1>
+<ul>
+<li>Recall point-free function composition with &quot;<code>.</code>&quot; (fixity <code>infixr 9</code>)</li>
+<li><p>Function <code>&gt;&gt;=</code> (pronounced &quot;bind&quot;) allows point-free IO composition</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(&gt;&gt;=) ::</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> b) <span class="ot">-&gt;</span> <span class="dt">IO</span> b
+<span class="kw">infixl</span> <span class="dv">1</span> <span class="fu">&gt;&gt;=</span></code></pre></li>
+<li><p>Let's re-write <code>urldump</code> in point-free style</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span> getArgs <span class="fu">&gt;&gt;=</span> simpleHttpStr <span class="fu">.</span> <span class="fu">head</span> <span class="fu">&gt;&gt;=</span> <span class="fu">putStr</span></code></pre>
+<ul>
+<li>Note <code>&gt;&gt;=</code> composes left-to-right, while <code>.</code> goes right-to-left</li>
+</ul></li>
+<li><code>do</code> blocks are just <a href="http://www.haskell.org/onlinereport/haskell2010/haskellch3.html#x8-470003.14">syntactic sugar</a> for calling <code>&gt;&gt;=</code>
+<ul>
+<li>Let's de-sugar our original <code>main</code>:</li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span>
+    getArgs <span class="fu">&gt;&gt;=</span> \(url<span class="fu">:</span>_) <span class="ot">-&gt;</span>
+    simpleHttp url <span class="fu">&gt;&gt;=</span> \page <span class="ot">-&gt;</span>
+    <span class="fu">putStr</span> (L.toString page)</code></pre></li>
+</ul>
+</div>
+<div class="section slide level1" id="lazy-io">
+<h1>Lazy IO</h1>
+<ul>
+<li><p>Some simple file IO functions may be handy for first lab</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="fu">FilePath</span> <span class="fu">=</span> <span class="dt">String</span> <span class="co">-- makes FilePath synonym for String</span>
+<span class="fu">getContents</span><span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">String</span>          <span class="co">-- read all stdin</span>
+<span class="fu">readFile</span><span class="ot"> ::</span> <span class="fu">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span> <span class="co">-- read (whole) file</span>
+<span class="fu">writeFile</span><span class="ot"> ::</span> <span class="fu">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()  <span class="co">-- write file</span></code></pre></li>
+<li>E.g., <code>main = readFile &quot;input&quot; &gt;&gt;= writeFile &quot;output&quot;</code>
+<ul>
+<li>Surprisingly, this program does not require unbounded memory</li>
+<li>Rather, input is read lazily as the list of Characters is evaluated</li>
+</ul></li>
+<li>How lazy IO works
+<ul>
+<li>A list has two values, the head and the tail, each possibly a thunk</li>
+<li>At some point evaluating thunk actually triggers file IO</li>
+<li>Function <code>unsafeInterleaveIO</code> creates thunks that execute <code>IO</code> actions (c.f. more widely used <code>unsafePerformIO</code>, described in [[Peyton Jones]][Awkward])</li>
+<li>Lazy IO is great for scripts, bad for servers; more in Iteratee lecture</li>
+</ul></li>
+</ul>
+</div>
+</body> 
+</html>

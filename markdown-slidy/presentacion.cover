@@ -1,0 +1,12 @@
+<div class="slide cover title"> 
+    <img src="graphics/web.png" class="cover" />
+    <br clear="all" /> 
+
+    <h1>Fundamentos básicos del diseño Web: HTML y CSS</h1> 
+
+    <p><a href="http://es.linkedin.com/in/sortega">Sebastián Ortega</a>,
+        &lt;<a href="mailto:sortega@fi.upm.es">sortega@fi.upm.es</a>&gt;<br /> 
+        <br /> 
+	<br /><em>Curso de técnico en diseño y mantenimiento de sitios y
+	aplicaciones Web</em></p> 
+</div> 

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="todays-topic-do-notation">
+<h1>Today's Topic: <code>do</code> notation</h1>
+<p>quoted from <a href="http://learnyouahaskell.com/a-fistful-of-monads#getting-our-feet-wet-with-maybe">LYAH</a></p>
+<p>&quot;Monads in Haskell are so useful that they got their own special syntax called do notation.&quot;</p>
+<p>Do notation is just syntactic sugar to allow us to beatifully glue together (monadic values in sequence) (&gt;&gt;=) and (&gt;&gt;).</p>
+<p>The reason we're learning about <code>do</code> notation, is that it's crucial to write readable, elegant, concise programs, and our goal is to experience the beauty of function programming.</p>
+<p>http://learnyouahaskell.com/a-fistful-of-monads#getting-our-feet-wet-with-maybe</p>
+</div>
+<div class="section slide level1" id="its-just-syntactic-sugar">
+<h1>It's just syntactic sugar</h1>
+<ul>
+<li>Note: &quot;Syntactic sugar&quot; is a computer science term that refers to syntax within a programming language that is designed to make things easier to read or to express.</li>
+</ul>
+<p>It makes the language &quot;sweeter&quot; for humans to use: things can be expressed more clearly, more concisely, or in an alternative style that some may prefer.</p>
+<p>Syntactic sugar adds no expressive power to the language (It doesn't let us do anything new, it just makes what we can already do easier to write.) <a href="http://en.wikipedia.org/wiki/Syntactic_sugar">1</a></p>
+<pre><code>do x</code></pre>
+<p>is the same as</p>
+<pre><code>x</code></pre>
+<p>,</p>
+<pre><code>do v &lt;- x
+   &lt;stmts&gt;</code></pre>
+<p>is the same as</p>
+<pre><code>x &gt;&gt;= \v -&gt; do &lt;stmts&gt;</code></pre>
+<p>,</p>
+<pre><code>do let &lt;dcls&gt;
+   &lt;stmts&gt;</code></pre>
+<p>is the same as</p>
+<pre><code>let &lt;dcls&gt; in do &lt;stmts&gt;</code></pre>
+<p>In the following, note that the <code>x</code> and <code>&lt;stmts&gt;</code> must have the same alignment:</p>
+<pre><code>do x
+   &lt;stmts&gt;</code></pre>
+<p>is the same as</p>
+<pre><code>do x &gt;&gt; do &lt;stmts&gt;  </code></pre>
+<p>And now some identities:</p>
+<pre><code>do f x </code></pre>
+<p>is the same as</p>
+<pre><code>do v &lt;- return x
+   f v</code></pre>
+<p>,</p>
+<pre><code>do m </code></pre>
+<p>is the same as</p>
+<pre><code>do v &lt;- m
+   return v</code></pre>
+<p>,</p>
+<pre><code>do x &lt;- m
+   y &lt;- f x
+   g y</code></pre>
+<p>is the same as</p>
+<pre><code>do y &lt;- do x &lt;- m
+           f x 
+   g y</code></pre>
+</div>
+<div class="section slide level1" id="examples">
+<h1>Examples</h1>
+<p>Remember, <code>do</code> expressions are just different syntax for chaining monadic values.</p>
+<pre><code>foo :: Maybe String
+foo = Just 3  &gt;&gt;= (\x -&gt;
+      Just &quot;!&quot; &gt;&gt;= (\y -&gt;
+      Just (show x ++ y)))</code></pre>
+<p>Note that because of the definition of <code>(&gt;&gt;=)</code> for the <code>Maybe a</code></p>
+<pre><code>(&gt;&gt;=) :: Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b
+(Just x) &gt;&gt;= f = f x
+Nothing &gt;&gt;= _ = Nothing</code></pre>
+<p>if any of the values in the chaining sequence are <code>Nothing</code>, the chaining stops and <code>Nothing</code> is returned.</p>
+<p>do-notation lets elimina us eliminate the annoying lambdas</p>
+<pre><code>foo :: Maybe String
+foo = do
+    x &lt;- Just 3
+    y &lt;- Just &quot;!&quot;         
+    Just (show x ++ y)</code></pre>
+<p>Again, note that if <code>x</code> or <code>y</code> were <code>Nothing</code>, the rest of the do-block would not be evaluated, and <code>Nothing</code> would be returned.</p>
+</div>
+<div class="section slide level1" id="examples-1">
+<h1>Examples</h1>
+<pre><code>ghci&gt; Just 9 &gt;&gt;= (\x -&gt; Just (x &gt; 8))  
+Just True   </code></pre>
+<p>The equivaent using <code>do</code> notation is</p>
+<pre><code>marySue :: Maybe Bool  
+marySue = do   
+    x &lt;- Just 9  
+    Just (x &gt; 8)    </code></pre>
+</div>
+<div class="section slide level1" id="examples-2">
+<h1>Examples</h1>
+<p>quoted from <a href="http://learnyouahaskell.com/a-fistful-of-monads#getting-our-feet-wet-with-maybe">LYAH</a></p>
+<p>In do notation, when we bind monadic values to names, we can utilize pattern matching, just like in let expressions and function parameters. Here's an example of pattern matching in a do expression:</p>
+<pre><code>justH :: Maybe Char  
+justH = do  
+    (x:xs) &lt;- Just &quot;hello&quot;  
+    return x  </code></pre>
+<p>We use pattern matching to get the first character of the string &quot;hello&quot; and then we present it as the result. So justH evaluates to Just 'h'.</p>
+<p>Side note: &quot;When matching on a pattern in a function fails, the next pattern is matched. If the matching falls through all the patterns for a given function, an error is thrown and our program crashes. On the other hand, failed pattern matching in let expressions results in an error being produced right away, because the mechanism of falling through patterns isn't present in let expressions.&quot;</p>
+<p>-- TODO: could include a note here on returning Nothing rather than allowing a failure. -- could be a homework assignment… probs not.</p>
+</div>
+</body> 
+</html>

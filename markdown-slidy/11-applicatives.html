@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="slide cover title">
+
+
+</div><div class="section slide level1" id="todays-topic-applicatives">
+<h1>Today's Topic: Applicatives</h1>
+<ul>
+<li>Applicative functors are beefed up functors, represented in Haskell by the Applicative typeclass, found in the Control.Applicative module.</li>
+</ul>
+</div>
+<div class="section slide level1" id="the-following-is-just-a-copy-of-lyah-unedited">
+<h1>The following is just a copy of LYAH, unedited</h1>
+</div>
+<div class="section slide level1" id="motivation-for-applicative-functors">
+<h1>Motivation for Applicative Functors</h1>
+<p>As you know, functions in Haskell are curried by default, which means that a function that seems to take several parameters actually takes just one parameter and returns a function that takes the next parameter and so on. If a function is of type a -&gt; b -&gt; c, we usually say that it takes two parameters and returns a c, but actually it takes an a and returns a function b -&gt; c. That's why we can call a function as f x y or as (f x) y. This mechanism is what enables us to partially apply functions by just calling them with too few parameters, which results in functions that we can then pass on to other functions.</p>
+<p>So far, when we were mapping functions over functors, we usually mapped functions that take only one parameter. But what happens when we map a function like <em>, which takes two parameters, over a functor? Let's take a look at a couple of concrete examples of this. If we have Just 3 and we do fmap (</em>) (Just 3), what do we get? From the instance implementation of Maybe for Functor, we know that if it's a Just something value, it will apply the function to the something inside the Just. Therefore, doing fmap (<em>) (Just 3) results in Just ((</em>) 3), which can also be written as Just (* 3) if we use sections. Interesting! We get a function wrapped in a Just!</p>
+<p>ghci&gt; :t fmap (++) (Just &quot;hey&quot;)<br />fmap (++) (Just &quot;hey&quot;) :: Maybe ([Char] -&gt; [Char])<br />ghci&gt; :t fmap compare (Just 'a')<br />fmap compare (Just 'a') :: Maybe (Char -&gt; Ordering)<br />ghci&gt; :t fmap compare &quot;A LIST OF CHARS&quot;<br />fmap compare &quot;A LIST OF CHARS&quot; :: [Char -&gt; Ordering]<br />ghci&gt; :t fmap (y z -&gt; x + y / z) [3,4,5,6]<br />fmap (y z -&gt; x + y / z) [3,4,5,6] :: (Fractional a) =&gt; [a -&gt; a -&gt; a]<br />If we map compare, which has a type of (Ord a) =&gt; a -&gt; a -&gt; Ordering over a list of characters, we get a list of functions of type Char -&gt; Ordering, because the function compare gets partially applied with the characters in the list. It's not a list of (Ord a) =&gt; a -&gt; Ordering function, because the first a that got applied was a Char and so the second a has to decide to be of type Char.</p>
+<p>We see how by mapping &quot;multi-parameter&quot; functions over functors, we get functors that contain functions inside them. So now what can we do with them? Well for one, we can map functions that take these functions as parameters over them, because whatever is inside a functor will be given to the function that we're mapping over it as a parameter.</p>
+<p>ghci&gt; let a = fmap (*) [1,2,3,4]<br />ghci&gt; :t a<br />a :: [Integer -&gt; Integer]<br />ghci&gt; fmap (-&gt; f 9) a<br />[9,18,27,36]<br />But what if we have a functor value of Just (3 *) and a functor value of Just 5 and we want to take out the function from Just (3 *) and map it over Just 5? With normal functors, we're out of luck, because all they support is just mapping normal functions over existing functors. Even when we mapped -&gt; f 9 over a functor that contained functions inside it, we were just mapping a normal function over it. But we can't map a function that's inside a functor over another functor with what fmap offers us. We could pattern-match against the Just constructor to get the function out of it and then map it over Just 5, but we're looking for a more general and abstract way of doing that, which works across functors.</p>
+</div>
+<div class="section slide level1" id="meet-the-applicative-typeclass">
+<h1>Meet the Applicative typeclass</h1>
+<p>It lies in the Control.Applicative module and it defines two methods, pure and &lt;*&gt;. It doesn't provide a default implementation for any of them, so we have to define them both if we want something to be an applicative functor. The class is defined like so:</p>
+<p>class (Functor f) =&gt; Applicative f where<br /> pure :: a -&gt; f a<br /> (&lt;*&gt;) :: f (a -&gt; b) -&gt; f a -&gt; f b<br />This simple three line class definition tells us a lot! Let's start at the first line. It starts the definition of the Applicative class and it also introduces a class constraint. It says that if we want to make a type constructor part of the Applicative typeclass, it has to be in Functor first. That's why if we know that if a type constructor is part of the Applicative typeclass, it's also in Functor, so we can use fmap on it.</p>
+<p>The first method it defines is called pure. Its type declaration is pure :: a -&gt; f a. f plays the role of our applicative functor instance here. Because Haskell has a very good type system and because everything a function can do is take some parameters and return some value, we can tell a lot from a type declaration and this is no exception. pure should take a value of any type and return an applicative functor with that value inside it. When we say inside it, we're using the box analogy again, even though we've seen that it doesn't always stand up to scrutiny. But the a -&gt; f a type declaration is still pretty descriptive. We take a value and we wrap it in an applicative functor that has that value as the result inside it.</p>
+<p>A better way of thinking about pure would be to say that it takes a value and puts it in some sort of default (or pure) context—a minimal context that still yields that value.</p>
+<p>The &lt;<em>&gt; function is really interesting. It has a type declaration of f (a -&gt; b) -&gt; f a -&gt; f b. Does this remind you of anything? Of course, fmap :: (a -&gt; b) -&gt; f a -&gt; f b. It's a sort of a beefed up fmap. Whereas fmap takes a function and a functor and applies the function inside the functor, &lt;</em>&gt; takes a functor that has a function in it and another functor and sort of extracts that function from the first functor and then maps it over the second one. When I say extract, I actually sort of mean run and then extract, maybe even sequence. We'll see why soon.</p>
+</div>
+<div class="section slide level1" id="maybe-as-an-applicative">
+<h1>Maybe as an Applicative</h1>
+<p>Let's take a look at the Applicative instance implementation for Maybe.</p>
+<p>instance Applicative Maybe where<br /> pure = Just<br /> Nothing &lt;<em>&gt; _ = Nothing<br /> (Just f) &lt;</em>&gt; something = fmap f something<br />Again, from the class definition we see that the f that plays the role of the applicative functor should take one concrete type as a parameter, so we write instance Applicative Maybe where instead of writing instance Applicative (Maybe a) where.</p>
+<p>First off, pure. We said earlier that it's supposed to take something and wrap it in an applicative functor. We wrote pure = Just, because value constructors like Just are normal functions. We could have also written pure x = Just x.</p>
+<p>Next up, we have the definition for &lt;<em>&gt;. We can't extract a function out of a Nothing, because it has no function inside it. So we say that if we try to extract a function from a Nothing, the result is a Nothing. If you look at the class definition for Applicative, you'll see that there's a Functor class constraint, which means that we can assume that both of &lt;</em>&gt;'s parameters are functors. If the first parameter is not a Nothing, but a Just with some function inside it, we say that we then want to map that function over the second parameter. This also takes care of the case where the second parameter is Nothing, because doing fmap with any function over a Nothing will return a Nothing.</p>
+<p>So for Maybe, &lt;*&gt; extracts the function from the left value if it's a Just and maps it over the right value. If any of the parameters is Nothing, Nothing is the result.</p>
+<p>OK cool great. Let's give this a whirl.</p>
+<p>ghci&gt; Just (+3) &lt;<em>&gt; Just 9<br />Just 12<br />ghci&gt; pure (+3) &lt;</em>&gt; Just 10<br />Just 13<br />ghci&gt; pure (+3) &lt;<em>&gt; Just 9<br />Just 12<br />ghci&gt; Just (++&quot;hahah&quot;) &lt;</em>&gt; Nothing<br />Nothing<br />ghci&gt; Nothing &lt;<em>&gt; Just &quot;woot&quot;<br />Nothing<br />We see how doing pure (+3) and Just (+3) is the same in this case. Use pure if you're dealing with Maybe values in an applicative context (i.e. using them with &lt;</em>&gt;), otherwise stick to Just. The first four input lines demonstrate how the function is extracted and then mapped, but in this case, they could have been achieved by just mapping unwrapped functions over functors. The last line is interesting, because we try to extract a function from a Nothing and then map it over something, which of course results in a Nothing.</p>
+</div>
+<div class="section slide level1" id="loads-more-on-applicatives...">
+<h1>Loads more on applicatives...</h1>
+</div>
+</body> 
+</html>

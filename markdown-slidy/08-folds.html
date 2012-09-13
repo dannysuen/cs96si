@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es-ES"> 
+    <head> 
+	<meta name="generator" content="Make" /> 
+	<title>Fundamentos básicos del diseño Web: HTML y CSS</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<meta name="copyright" content=
+	    "Copyright &#169; 2011 Sebasti&aacute;n Ortega" /> 
+	<!--meta name="duration" content="4" /--> 
+	<meta name="font-size-adjustment" content="0" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/slidy.css" type="text/css" /> 
+	<link rel="stylesheet" href="themes/w3c-blue/styles/w3c-blue.css" type="text/css" /> 
+	<script src="scripts/slidy.js" charset="utf-8" type="text/javascript"> 
+	</script> 
+    </head> 
+    <body> 
+	<div class="background">
+		<img alt="" id="head-icon"
+		src="themes/w3c-blue/graphics/icon-blue.png" />
+	</div>
+<div class="section slide level1" id="todays-topic-folds">
+<h1>Today's Topic: Folds</h1>
+<p>A <strong>fold</strong> applies a function to a list in a way similar to map, but accumulates a single result instead of a list.</p>
+</div>
+<div class="section slide level1" id="motivation-for-folds">
+<h1>Motivation for folds</h1>
+<p><code>sum :: [Integer] -&gt; Integer  sum []     = 0  sum (x:xs) = x + sum xs</code> `</p>
+<p><code>product :: [Integer] -&gt; Integer  product []     = 1  product (x:xs) = x * product xs</code></p>
+<p><code>concat :: [[a]] -&gt; [a]  concat []     = []  concat (x:xs) = x ++ concat xs</code></p>
+<p>There is a certain pattern of recursion common to all of these examples. This pattern is known as a fold, possibly from the idea that a list is being &quot;folded up&quot; into a single value.</p>
+<p>The Standard Prelude defines four fold functions: <code>foldr</code>, <code>foldl</code>, <code>foldr1</code> and <code>foldl1</code>.</p>
+<h3 id="foldl">foldl</h3>
+<pre><code>foldl            :: (a -&gt; b -&gt; a) -&gt; a -&gt; [b] -&gt; a
+foldl f acc []     =  acc
+foldl f acc (x:xs) =  foldl f (f acc x) xs</code></pre>
+<p>foldl folds the list up from the left side. The binary function is applied between the starting value and the head of the list. That produces a new accumulator value and the binary function is called with that new value and the next element, etc.</p>
+<pre><code>foldl (max) 0 [3,10,14]</code></pre>
+<p>is the same as</p>
+<pre><code>(max (max (max 0 3) 10) 14)</code></pre>
+<p>The &quot;l&quot; in &quot;foldl&quot; stands for left-asociative. We evaluate the elments from left to right.</p>
+<p>Let's walk through this step-by-step:</p>
+<p>Initially, <code>acc</code> is 0, <code>x</code> is 3, and <code>xs</code> is [10, 14]. The new accumulator becomes <code>max 0 3</code>. The new <code>x</code> becmoes 10. The new <code>xs</code> becomes [14]. The new accumulator becomes <code>max (max 0 3) 10</code> The new <code>x</code> becomes [14]. The new <code>xs</code> becmoes []. The new accumulator becomes <code>max (max (max 0 3) 10) 14</code> <code>x:xs</code> is now <code>[]</code> The result of <code>foldl f acc [] is acc</code>, and so we return <code>max (max (max 0 3) 10) 14</code>.</p>
+<p>As another example,</p>
+<pre><code>sum :: [Int] -&gt; Int
+sum numbers = foldl (+) 0 numbers</code></pre>
+<p><code>sum [1, 2, 3, 4]</code> gives 10.</p>
+<pre><code>product :: [Int] -&gt; Int
+product numbers = foldl (*) 1 numbers</code></pre>
+<p><code>sum [1, 2, 3, 4]</code> gives 24.</p>
+<ul>
+<li>Note that <code>foldl</code> is <em>tail recursive</em>.</li>
+<li><em>Tail recursion</em> means that each recursive call changes an accumulator, such that when we reach the bottommost recursive call, we have the result stored in the accumulator and we can return. You never need to refer to old stack frames.</li>
+<li>In contrast, <em>head recursion</em> means that the recursive call depends on result of all deeper recursive calls, so you have to save the current stack frame as you go and evaluate all deeper recursive calls. As soon as you reach the bottommost recursive call, you have to &quot;pop back out&quot; to return the results of the all the recursive calls as you compute the result. Of course, tail-recursion is more space and time-efficient. <code>foldr</code> is head recursinve.</li>
+</ul>
+<h3 id="foldr">foldr</h3>
+<p>The right-associative foldr folds up a list from the right, that is, it walks from the last to the first element of the list and applies the given function to each of the elements and the accumulator, the initial value of which has to be set:</p>
+<pre><code>foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+foldr f acc []     = acc
+foldr f acc (x:xs) = f x (foldr f acc xs)</code></pre>
+<p>The first argument is a function with two arguments, the second is a &quot;zero&quot; value for the accumulator, and the third is the list to be folded.</p>
+<p>Let's look at the <code>max</code> example again.</p>
+<p>whereas <code>foldl (max) 0 [3,10,14]</code> is left-associative (it's evaluated as <code>(max (max (max (max 0 3) 10) 14)</code>), <code>foldr (max) 0 [3,10,14]</code> is right-associative. It's evaluated as <code>max 0 (max 3 (max 10 14))</code></p>
+<p>The step-by-step trace of <code>foldl</code> will be more difficult than the <code>foldr</code> example because it's head-recursive, so at each step we have to save the current stack frame and compute all the rest of the values until we &quot;pop back out&quot;. We don't simply update an accumulator and return it when we hit the bottommost recursive call, as we do in the case of tail-recursion.</p>
+<p>Let's walk through this step by step:</p>
+<ul>
+<li>Initially, <code>acc</code> is 0, <code>x</code> is 3, and <code>xs</code> is [10, 14].</li>
+<li>Now we call <code>max</code> on 3 and the result of a call to <code>foldr</code> (we'll name it call_2).</li>
+<li>In call_2, <code>acc</code> is 0, <code>x</code> is 10, and 'xs' is [14]. The result of call_2 is the result when <code>max</code> is called on 10 and the result of a call to <code>foldr</code> (we'll name it call_3).</li>
+<li>In call_3, <code>acc</code> is still 0, <code>x</code> is 14, and <code>xs</code> is <code>[]</code>, so the result of call_3 is is the result when <code>max</code> is called on 14 and the result of a call to <code>foldr</code> (we'll name it call_4).</li>
+<li>In call_4, <code>(x:xs)</code> is <code>[]</code>, so the result is <code>acc</code>, which is 0.</li>
+<li>call_3 is then <code>(max 14 0)</code></li>
+<li>call_2 is then <code>max 10 (max 14 0)</code>.</li>
+<li>The initial call is then <code>(max 3 (max 10 (max 14 0))</code>.</li>
+</ul>
+<p>Technical Note: The left associative fold is tail-recursive, that is, it recurses immediately, calling itself. For this reason the compiler will optimise it to a simple loop, and <em>it will then be much more efficient than foldr</em>. However, Haskell is a lazy language, and so the calls to f will by default be left unevaluated, building up an expression in memory whose size is linear in the length of the list, exactly what we hoped to avoid in the first place. To get back this efficiency, there is a version of foldl which is strict, that is, it forces the evaluation of f immediately, called foldl'. Note the single quote character: this is pronounced &quot;fold-ell-tick&quot;. A tick is a valid character in Haskell identifiers. foldl' can be found in the library Data.List (which can be imported by adding import Data.List to the beginning of a source file). As a rule of thumb you should use foldr on lists that might be infinite or where the fold is building up a data structure, and foldl' if the list is known to be finite and comes down to a single value. foldl (without the tick) should rarely be used at all, unless the list is not too long, or memory usage isn't a problem.</p>
+</div>
+<div class="section slide level1" id="distinction-between-foldr-and-foldl">
+<h1>Distinction between <code>foldr</code> and <code>foldl</code></h1>
+<p>TODO: Is this example helpful?</p>
+<p>It helps to understand the distinction between foldr and foldl. Why is foldr called &quot;fold right&quot;?</p>
+<p>Initially I thought it was because it consumed elements from right to left. Yet both foldr and foldl consume the list from left to right.</p>
+<p>foldl evaluates from left to right (left-associative) foldr evaluates from right to left (right-associative) We can make this distinction clear with an example that uses an operator for which associativity matters. We could use a human example, such as the operator, &quot;eats&quot;:</p>
+<p>foodChain = (human : (shark : (fish : (algae : []))))</p>
+<p>foldl step [] foodChain where step eater food = eater <code>eats</code> food -- note that &quot;eater&quot; is the accumulator and &quot;food&quot; is the element</p>
+<p>foldl eats [] (human : (shark : (fish : (algae : [])))) == foldl eats (human <code>eats</code> shark) (fish : (algae : [])) == foldl eats ((human <code>eats</code> shark) <code>eats</code> fish) (algae : []) == foldl eats (((human <code>eats</code> shark) <code>eats</code> fish) <code>eats</code> algae) [] == (((human <code>eats</code> shark) <code>eats</code> fish) <code>eats</code> algae) The semantics of this foldl is: A human eats some shark, and then the same human who has eaten shark then eats some fish, etc. The eater is the accumulator.</p>
+<p>Contrast this with:</p>
+<p>foldr step [] foodChain where step food eater = eater <code>eats</code> food. -- note that &quot;eater&quot; is the element and &quot;food&quot; is the accumulator</p>
+<p>foldl <code>eats</code> [] (human : (shark : (fish : (algae : [])))) == foldl eats (human <code>eats</code> shark) (fish : (algae : [])))) == foldl eats (human <code>eats</code> (shark <code>eats</code> (fish)) (algae : []) == foldl eats (human <code>eats</code> (shark <code>eats</code> (fish <code>eats</code> algae))) [] == (human <code>eats</code> (shark <code>eats</code> (fish <code>eats</code> algae) The semantics of this foldr is: A human eats a shark which has already eaten a fish, which has already eaten some algae. The food is the accumulator.</p>
+<p>Both foldl and foldr &quot;peel off&quot; eaters from left to right, so that's not the reason we refer to foldl as &quot;left fold&quot;. Instead, the order of evaluation matters.</p>
+<p>Check out foldl.com and foldr.com.</p>
+</div>
+<div class="section slide level1" id="foldl-and-strictness">
+<h1>foldl and strictness</h1>
+<p>For summing elements, <code>foldl</code> looks better than foldr on the face of things, because at every step through the list, the function we're folding with can see both of its arguments.</p>
+<p>But there's a catch.</p>
+<p>None of the intermediate results are visible to the caller of foldl, so the caller cannot force those results to be evaluated.</p>
+<p>In other words, we're still building up a big thunk!</p>
+<p><a href="http://www.scs.stanford.edu/11au-cs240h/notes/par-slides.html#(9)">9</a></p>
+<p>A strict left fold This function is defined for us in Data.List, and it has the same type as foldl:</p>
+<p>{-# LANGUAGE BangPatterns #-}</p>
+<p>foldl' :: (a -&gt; b -&gt; a) -&gt; a -&gt; [b] -&gt; a foldl' f = go where go !z (x:xs) = go (f z x) xs go !z _ = z The crucial difference lies with the strictness annotation, which forces each intermediate result to be evaluated.</p>
+<ul>
+<li>foldl' may as well be called strictFold</li>
+<li>foldl' is pronounced &quot;fold prime&quot;</li>
+<li>foldl' is so-called because it's closely related to <code>foldl</code>: it's a foldl where the accumulator is evaluated at every step, so that large thunks (code waiting to be evaluted) don't build up.</li>
+</ul>
+</div>
+<div class="section slide level1" id="dont-use-foldl">
+<h1>Don't use foldl</h1>
+<p>It should be clear by now that plain old foldl is very rarely useful.</p>
+<p>In fact, I've never personally found a situation where it was the right kind of fold to use.</p>
+<p>If you find yourself thinking &quot;I need a left fold&quot;, it's safe to assume that foldl' is what you'll need.</p>
+</div>
+<div class="section slide level1" id="references">
+<h1>References</h1>
+<p>http://en.wikibooks.org/wiki/Haskell/List_processing</p>
+</div>
+</body> 
+</html>
