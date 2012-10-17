@@ -274,6 +274,8 @@ In applications where performance is required at any cost, or when the goal is d
 - Composability
 - Modularity
 
+TODO: include disclaimer that many of us are likely never going to get a job using a functional language -- learning the functional programming paradigm is more for self-improvement that practical skill-building.
+
 # Advantages of FP
 
 #### Less debugging
